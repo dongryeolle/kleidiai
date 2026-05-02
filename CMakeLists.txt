@@ -789,10 +789,24 @@ if(KLEIDIAI_BUILD_BENCHMARK)
         benchmark/matmul/matmul_registry.cpp
         benchmark/imatmul/imatmul_registry.cpp
     )
-    set_source_files_properties(benchmark/matmul/matmul_registry.cpp
-        PROPERTIES COMPILE_OPTIONS "-fno-tree-vectorize;-march=armv8-a+sve+sve2${KLEIDIAI_INTERNAL_EXTRA_ARCH}")
-    set_source_files_properties(benchmark/imatmul/imatmul_registry.cpp
-        PROPERTIES COMPILE_OPTIONS "-fno-tree-vectorize;-march=armv8-a+sve+sve2${KLEIDIAI_INTERNAL_EXTRA_ARCH}")
+    if(APPLE)
+        # macOS does not expose SVE in user-space (non-streaming mode).  The
+        # tree vectorizer alone (-fno-tree-vectorize) is not enough — Apple
+        # Clang's SLP vectorizer still emits INDEX instructions in static
+        # initializers, which crash with SIGILL on macOS.  Adding
+        # -fno-tree-slp-vectorize suppresses that path while keeping
+        # +sve+sve2 in the march so that __ARM_FEATURE_SVE2 is defined and
+        # kai_get_sme_vector_length_u32 remains visible.
+        set_source_files_properties(benchmark/matmul/matmul_registry.cpp
+            PROPERTIES COMPILE_OPTIONS "-fno-tree-vectorize;-fno-tree-slp-vectorize;-march=armv8-a+sve+sve2${KLEIDIAI_INTERNAL_EXTRA_ARCH}")
+        set_source_files_properties(benchmark/imatmul/imatmul_registry.cpp
+            PROPERTIES COMPILE_OPTIONS "-fno-tree-vectorize;-fno-tree-slp-vectorize;-march=armv8-a+sve+sve2${KLEIDIAI_INTERNAL_EXTRA_ARCH}")
+    else()
+        set_source_files_properties(benchmark/matmul/matmul_registry.cpp
+            PROPERTIES COMPILE_OPTIONS "-fno-tree-vectorize;-march=armv8-a+sve+sve2${KLEIDIAI_INTERNAL_EXTRA_ARCH}")
+        set_source_files_properties(benchmark/imatmul/imatmul_registry.cpp
+            PROPERTIES COMPILE_OPTIONS "-fno-tree-vectorize;-march=armv8-a+sve+sve2${KLEIDIAI_INTERNAL_EXTRA_ARCH}")
+    endif()
 
     target_link_libraries(kleidiai_benchmark
         PRIVATE
