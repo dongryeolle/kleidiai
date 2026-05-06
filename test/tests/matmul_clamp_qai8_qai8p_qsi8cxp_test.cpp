@@ -28,6 +28,7 @@
 #include "kai/ukernels/matmul/matmul_clamp_qai8_qai8_qsi8cxp/kai_matmul_clamp_qai8_qai8_qsi8cxp_interface.h"
 #include "kai/ukernels/matmul/matmul_clamp_qai8_qai8p_qsi8cxp/kai_matmul_clamp_qai8_qai8p2vlx4_qsi8cxp2vlx4sb_2vlx2vl_sme_mopa.h"
 #include "kai/ukernels/matmul/matmul_clamp_qai8_qai8p_qsi8cxp/kai_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa.h"
+#include "kai/ukernels/matmul/matmul_clamp_qai8_qai8p_qsi8cxp/kai_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot.h"
 #include "kai/ukernels/matmul/matmul_clamp_qai8_qai8p_qsi8cxp/kai_matmul_clamp_qai8_qai8p_qsi8cxpsb_interface.h"
 #include "kai/ukernels/matmul/pack/kai_lhs_imatmul_pack_x8p2vlx4_x8p_sme.h"
 #include "kai/ukernels/matmul/pack/kai_lhs_pack_x8p2vlx4_x8_sme.h"
@@ -158,6 +159,28 @@ get_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa_interface() {
     ukernel.get_dst_offset = kai_get_dst_offset_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa;
     ukernel.get_dst_size = kai_get_dst_size_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa;
     ukernel.run_matmul = kai_run_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa;
+
+    return ukernel;
+}
+
+/// Make sure that interface matches for qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot
+const kai_matmul_clamp_qai8_qai8p_qsi8cxpsb_ukernel&
+get_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot_interface() {
+    static kai_matmul_clamp_qai8_qai8p_qsi8cxpsb_ukernel ukernel;
+
+    ukernel.get_m_step = kai_get_m_step_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_n_step = kai_get_n_step_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_mr = kai_get_mr_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_nr = kai_get_nr_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_kr = kai_get_kr_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_sr = kai_get_sr_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_lhs_packed_offset =
+        kai_get_lhs_packed_offset_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_rhs_packed_offset =
+        kai_get_rhs_packed_offset_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_dst_offset = kai_get_dst_offset_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.get_dst_size = kai_get_dst_size_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
+    ukernel.run_matmul = kai_run_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot;
 
     return ukernel;
 }
@@ -308,11 +331,13 @@ struct IndirectMatMulVariant {
 };
 
 const auto& get_gemm_variants() {
-    static std::array<MatMulVariant, 2> variants;
+    static std::array<MatMulVariant, 3> variants;
     static const kai_matmul_clamp_qai8_qai8p_qsi8cxpsb_ukernel& ukernel_sme2 =
         get_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa_interface();
     static const kai_matmul_clamp_qai8_qai8p_qsi8cxpsb_ukernel& ukernel_sme =
         get_matmul_clamp_qai8_qai8p2vlx4_qsi8cxp2vlx4sb_2vlx2vl_sme_mopa_interface();
+    static const kai_matmul_clamp_qai8_qai8p_qsi8cxpsb_ukernel& ukernel_dot =
+        get_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot_interface();
 
     variants[0].name = "matmul_qai8_qai8p_qsi8cxp_sme";
     variants[0].acc_pack.m = 2 * get_sme_vector_length<int32_t>();
@@ -357,6 +382,28 @@ const auto& get_gemm_variants() {
     variants[1].matmul.get_dst_offset = ukernel_sme2.get_dst_offset;
     variants[1].matmul.get_dst_size = ukernel_sme2.get_dst_size;
     variants[1].matmul.matmul = ukernel_sme2.run_matmul;
+
+    variants[2].name = "matmul_qai8_qai8p_qsi8cxp_sme2_dot";
+    variants[2].acc_pack.m = 2 * get_sme_vector_length<int32_t>();
+    variants[2].acc_pack.n = 2 * get_sme_vector_length<int32_t>();
+    variants[2].acc_pack.k = sizeof(int32_t) / sizeof(int8_t);
+    variants[2].acc_step.m = 2 * get_sme_vector_length<int32_t>();
+    variants[2].acc_step.n = 2 * get_sme_vector_length<int32_t>();
+    variants[2].acc_step.k = sizeof(int32_t) / sizeof(int8_t);
+    variants[2].is_supported = cpu_has_sme2;
+    variants[2].lhs_pack = get_lhs_pack();
+    variants[2].rhs_pack = get_rhs_pack();
+    variants[2].matmul.get_m_step = ukernel_dot.get_m_step;
+    variants[2].matmul.get_n_step = ukernel_dot.get_n_step;
+    variants[2].matmul.get_mr = ukernel_dot.get_mr;
+    variants[2].matmul.get_nr = ukernel_dot.get_nr;
+    variants[2].matmul.get_kr = ukernel_dot.get_kr;
+    variants[2].matmul.get_sr = ukernel_dot.get_sr;
+    variants[2].matmul.get_packed_lhs_offset = ukernel_dot.get_lhs_packed_offset;
+    variants[2].matmul.get_packed_rhs_offset = ukernel_dot.get_rhs_packed_offset;
+    variants[2].matmul.get_dst_offset = ukernel_dot.get_dst_offset;
+    variants[2].matmul.get_dst_size = ukernel_dot.get_dst_size;
+    variants[2].matmul.matmul = ukernel_dot.run_matmul;
 
     return variants;
 }
