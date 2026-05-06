@@ -42,6 +42,7 @@
 // imatmul_clamp_qai8_qai8p_qsi8cxp
 #include "kai/ukernels/matmul/imatmul_clamp_qai8_qai8p_qsi8cxp/kai_imatmul_clamp_qai8_qai8p2vlx4_qsi8cxp2vlx4sb_2vlx2vl_sme_mopa.h"
 #include "kai/ukernels/matmul/imatmul_clamp_qai8_qai8p_qsi8cxp/kai_imatmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa.h"
+#include "kai/ukernels/matmul/imatmul_clamp_qai8_qai8p_qsi8cxp/kai_imatmul_clamp_qai8_qai8p1x4_qsi8cxpsb2vlx4_1x16vl_sme2_dot.h"
 
 namespace kai::benchmark {
 using DataType = test::DataType;
@@ -81,6 +82,12 @@ inline constexpr ImatmulStaticQuantInterface
         .run_imatmul = kai_run_imatmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa,
     };
 
+inline constexpr ImatmulStaticQuantInterface
+    kai_imatmul_clamp_qai8_qai8p1x4_qsi8cxpsb2vlx4_1x16vl_sme2_dot_interface{
+        .get_m_step = kai_get_m_step_imatmul_clamp_qai8_qai8p1x4_qsi8cxpsb2vlx4_1x16vl_sme2_dot,
+        .run_imatmul = kai_run_imatmul_clamp_qai8_qai8p1x4_qsi8cxpsb2vlx4_1x16vl_sme2_dot,
+    };
+
 // imatmul_clamp_f32_f32_f32p (takes indirection buffer)
 inline constexpr ImatmulNoLHSPackBaseInterface kai_imatmul_clamp_f32_f32_f32p4vlx1b_6x4vl_sve_mla_interface{
     .get_m_step = kai_get_m_step_imatmul_clamp_f32_f32_f32p4vlx1b_6x4vl_sve_mla,
@@ -113,6 +120,11 @@ inline const std::array imatmul_benchmarks{
         "kai_imatmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa",
         kai_benchmark_imatmul<ImatmulStaticQuantInterface>,
         kai_imatmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_2vlx2vl_sme2_mopa_interface, DataType::QAI8,
+        test::cpu_has_sme2),
+    RegisterBenchmark(
+        "kai_imatmul_clamp_qai8_qai8p1x4_qsi8cxpsb2vlx4_1x16vl_sme2_dot",
+        kai_benchmark_imatmul<ImatmulStaticQuantInterface>,
+        kai_imatmul_clamp_qai8_qai8p1x4_qsi8cxpsb2vlx4_1x16vl_sme2_dot_interface, DataType::QAI8,
         test::cpu_has_sme2),
 
     // imatmul_clamp_f32_f32_f32p - takes indirection buffer.
