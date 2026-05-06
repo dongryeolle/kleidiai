@@ -121,3 +121,4 @@ cython_debug/
 ### System
 *~
 .DS_Store
+.omc/
