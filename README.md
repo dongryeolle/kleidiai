@@ -97,6 +97,25 @@ All functions defined in the **.h** header file of the micro-kernel variant has 
 For a list of supported micro-kernels refer to the [KleidiAI micro-kernel tables](docs/microkernel_tables.md#kleidiai-micro-kernel-tables) and the [source](/kai/ukernels/) directory. The micro-kernels are grouped in separate directories based on the performed operation.
 For example, all the matrix-multiplication micro-kernels are held in the `matmul/` subdirectory. In there, the micro-kernels are grouped into directories whose name syntax describes the micro-kernel from a data type point of view of inputs and outputs.
 
+## SME2 Experimental Kernels — Apple M4 Results (AutokAI)
+
+The following table summarizes new SME2-optimized micro-kernel variants developed for
+**Apple M4** (Arm SME2, svl = 512 bits) under the AutokAI autoresearch project.
+All measurements are single-thread, native execution on the Apple M4 P-core.
+
+| Kernel variant | Operation | Before | After | Speedup | Tests |
+|---|---|---|---|---|---|
+| `kai_imatmul_clamp_qai8_qai8p1x4_qsi8cxpsb2vlx4_1x16vl_sme2_dot` | Indirect matmul (GEMV, m=1) — LLM decode path | MOPA baseline 1.09 µs | **1.06 µs** | **−3% vs MOPA** | 3 330 PASS |
+| `kai_matmul_clamp_qai8_qai8p2vlx4_qsi8cxpsb2vlx4_1x16vl_sme2_dot` | Standard matmul (m=128) — CV/image path | C reference 604 µs | **18 µs** | **33×** | 1 998 PASS |
+
+### Key implementation technique
+
+Both variants use a **single `SMSTART`/`SMSTOP` pair** that brackets all tiled loops,
+rather than one pair per output block. On Apple M4 each `SMSTART`/`SMSTOP` costs
+≈280–300 cycles; eliminating 7 of 8 invocations in a typical n=256 run saves ≈630 cycles.
+The full requantize pipeline (`scvtf → fmul → frinta → fcvtzs → add ozp → smax/smin → st1b`)
+runs entirely inside the single streaming region using Streaming SVE2 instructions.
+
 ## How to build
 
 ### Prerequisites
